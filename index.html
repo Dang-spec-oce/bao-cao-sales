@@ -964,62 +964,71 @@ async function exportReportImage(rec){
     };
 
     
+```javascript
 document.getElementById('saveImageBtn').onclick = async ()=>{
 
-      try{
+  try{
 
-        window.scrollTo(0,0);
+    // cuộn lên đầu trang để tránh Android chụp thiếu
+    window.scrollTo(0,0);
 
-        const target = document.querySelector('.page');
+    // chọn toàn bộ giao diện báo cáo
+    const target = document.querySelector('.page');
 
-        // watermark
-        const wm = document.createElement('div');
+    // tạo watermark thời gian tạm thời
+    const wm = document.createElement('div');
 
-        const now2 = new Date().toLocaleString('vi-VN');
+    const now = new Date().toLocaleString('vi-VN');
 
-        wm.innerHTML = '🕒 ' + now2;
+    wm.innerHTML = '🕒 ' + now;
 
-        wm.style.textAlign='right';
-        wm.style.fontSize='11px';
-        wm.style.color='#888';
-        wm.style.marginTop='10px';
-        wm.style.fontWeight='700';
+    wm.style.textAlign = 'right';
+    wm.style.fontSize = '11px';
+    wm.style.color = '#888';
+    wm.style.marginTop = '10px';
+    wm.style.fontWeight = '700';
+    wm.style.paddingRight = '8px';
 
-        target.appendChild(wm);
+    // gắn watermark xuống cuối page
+    target.appendChild(wm);
 
-        const canvas = await html2canvas(target,{
-          scale:3,
-          useCORS:true,
-          backgroundColor:'#f0ede9',
-          scrollY:-window.scrollY,
-          windowWidth:document.body.scrollWidth,
-          windowHeight:document.body.scrollHeight
-        });
+    // chụp toàn bộ giao diện
+    const canvas = await html2canvas(target,{
+      scale:3,
+      useCORS:true,
+      backgroundColor:'#f0ede9',
+      scrollY:-window.scrollY,
+      windowWidth:document.body.scrollWidth,
+      windowHeight:document.body.scrollHeight
+    });
 
-        wm.remove();
+    // xóa watermark tạm sau khi chụp
+    wm.remove();
 
-        const image = canvas.toDataURL('image/png');
+    // xuất ảnh
+    const image = canvas.toDataURL('image/png');
 
-        const link = document.createElement('a');
+    const link = document.createElement('a');
 
-        link.href = image;
+    link.href = image;
 
-        link.download = `Bao-cao-${rec.empId}.png`;
+    link.download = 'Bao-cao-sales.png';
 
-        link.click();
+    link.click();
 
-        setTimeout(()=>{
-          window.open(image,'_blank');
-        },500);
+    // fallback cho mobile
+    setTimeout(()=>{
+      window.open(image,'_blank');
+    },500);
 
-      }catch(err){
+  }catch(err){
 
-        alert('Lỗi xuất ảnh: ' + err.message);
+    console.error(err);
 
-        console.error(err);
-      }
-    };
-
+    alert('Lỗi xuất ảnh: ' + err.message);
+  }
+};
+```
 
   }catch(err){
 
