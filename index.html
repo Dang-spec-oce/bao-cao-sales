@@ -240,8 +240,9 @@ color:#111;
     </div>
     <div class="so-grp">
       <div class="so-grp-lbl">SO Y31d (SO tuần / SO tháng / Target)</div>
-      <div class="so-row-2">
+      <div class="so-row">
         <div><div class="mini-lbl">SO tuần</div><input type="number" id="y31-d" min="0" placeholder="0" oninput="calc()"/></div>
+        <div><div class="mini-lbl">SO tháng</div><input type="number" id="y31-day" min="0" placeholder="0" oninput="calc()"/></div>
         <div><div class="mini-lbl">Target giao</div><input type="number" id="y31-t" min="0" placeholder="5" oninput="calc()"/></div>
         <div><div class="mini-lbl">%</div><div class="pct-box" id="pct-y31">—</div></div>
       </div>
@@ -664,7 +665,7 @@ function calc(){
   const ptm=pct(vn('tm-day'),vn('tm-t'));
   const ptw=pct(vn('tw-d'),vn('tw-t'));
   const pv60=pct(vn('v60-day'),vn('v60-t'));
-  const py31=pct(vn('y31-d'),vn('y31-t'));
+  const py31=pct(vn('y31-day'),vn('y31-t'));
   const pv70=pct(vn('v70-day'),vn('v70-t'));
   const pv70fe=pct(vn('v70fe-day'),vn('v70fe-t'));
 
@@ -734,7 +735,7 @@ function submit(){
     tm:{week:vn('tm-d'),month:vn('tm-day'),target:vn('tm-t'),pct:pct(vn('tm-day'),vn('tm-t'))},
     tw:{day:vn('tw-d'),week:vn('tw-d'),target:vn('tw-t'),pct:pct(vn('tw-d'),vn('tw-t'))},
     v60:{d:vn('v60-d'),day:vn('v60-day'),t:vn('v60-t'),pct:pct(vn('v60-d'),vn('v60-t'))},
-    y31:{d:vn('y31-d'),t:vn('y31-t'),pct:pct(vn('y31-d'),vn('y31-t'))},
+    y31:{d:vn('y31-d'),day:vn('y31-day'),t:vn('y31-t'),pct:pct(vn('y31-day'),vn('y31-t'))},
     v70:{d:vn('v70-d'),day:vn('v70-day'),t:vn('v70-t'),pct:pct(vn('v70-day'),vn('v70-t'))},
     v70fe:{d:vn('v70fe-d'),day:vn('v70fe-day'),t:vn('v70fe-t'),pct:pct(vn('v70fe-day'),vn('v70fe-t'))},
     sells,
@@ -852,6 +853,27 @@ async function exportReportImage(rec){
       if(el.tagName === 'SELECT') cl.value = el.value;
       else if(el.type === 'checkbox' || el.type === 'radio') cl.checked = el.checked;
       else cl.value = el.value;
+    });
+
+    // Copy trạng thái hiển thị của các phần tử dynamic (emp-badge, pct-box, mc-v...)
+    const origElems = target.querySelectorAll('[style]');
+    const cloneElems = clone.querySelectorAll('[style]');
+    origElems.forEach((el, i) => {
+      const cl = cloneElems[i];
+      if(cl) cl.style.cssText = el.style.cssText;
+    });
+
+    // Copy nội dung text của các phần tử hiển thị kết quả tính toán
+    const dynamicIds = ['emp-code','emp-store','pct-tm','pct-tw','pct-v60','pct-y31','pct-v70','pct-v70fe',
+                        'm-tm','m-tw','m-v60','m-y31','m-v70','m-v70fe','m-total',
+                        'pb-tm','pb-tw','pb-v60','pb-y31','pb-v70','pb-v70fe'];
+    dynamicIds.forEach(id => {
+      const orig = target.querySelector('#'+id);
+      const cl = clone.querySelector('#'+id);
+      if(!orig || !cl) return;
+      cl.textContent = orig.textContent;
+      cl.className = orig.className;
+      cl.style.cssText = orig.style.cssText;
     });
 
     // Ẩn nút "Xuất ảnh báo cáo" trong ảnh
