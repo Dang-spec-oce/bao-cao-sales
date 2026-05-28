@@ -843,6 +843,17 @@ async function exportReportImage(rec){
     const clone = target.cloneNode(true);
     clone.style.cssText = 'position:static;transform:none;margin:0;padding:12px 12px 4px';
 
+    // Copy giá trị input/select/textarea từ bản gốc sang clone
+    const origInputs = target.querySelectorAll('input, select, textarea');
+    const cloneInputs = clone.querySelectorAll('input, select, textarea');
+    origInputs.forEach((el, i) => {
+      const cl = cloneInputs[i];
+      if(!cl) return;
+      if(el.tagName === 'SELECT') cl.value = el.value;
+      else if(el.type === 'checkbox' || el.type === 'radio') cl.checked = el.checked;
+      else cl.value = el.value;
+    });
+
     // Ẩn nút "Xuất ảnh báo cáo" trong ảnh
     const cloneBtn = clone.querySelector('.btn-sub');
     if(cloneBtn) cloneBtn.style.display = 'none';
