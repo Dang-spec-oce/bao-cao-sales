@@ -106,6 +106,56 @@ select{font-size:13px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icon-192.png">
+
+<style>
+.preview-overlay{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.92);
+z-index:999999;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:18px;
+flex-direction:column;
+}
+
+.preview-wrap{
+max-width:100%;
+max-height:100%;
+overflow:auto;
+}
+
+.preview-actions{
+position:fixed;
+bottom:20px;
+left:20px;
+right:20px;
+display:flex;
+gap:10px;
+z-index:1000000;
+}
+
+.preview-btn{
+flex:1;
+border:none;
+padding:14px;
+border-radius:14px;
+font-size:15px;
+font-weight:800;
+}
+
+.preview-btn.save{
+background:#d10000;
+color:#fff;
+}
+
+.preview-btn.close{
+background:#fff;
+color:#111;
+}
+</style>
+
 </head>
 <body>
 <div class="page">
@@ -524,13 +574,14 @@ function sw(tab){
 
 
 
+
 async function exportReportImage(rec){
 
   const box=document.getElementById('report-capture');
   const now = new Date().toLocaleString('vi-VN');
 
   box.innerHTML=`
-    <div style="border:2px solid #111;border-radius:20px;padding:18px;background:#fff">
+    <div id="export-image-box" style="border:2px solid #111;border-radius:20px;padding:18px;background:#fff">
       <div style="font-size:24px;font-weight:900;text-align:center;margin-bottom:4px">
         BÁO CÁO BÁN HÀNG
       </div>
@@ -584,7 +635,37 @@ async function exportReportImage(rec){
       backgroundColor:'#ffffff'
     });
 
-    canvas.toBlob(async function(blob){
+    const imageUrl = canvas.toDataURL('image/png');
+
+    const overlay = document.createElement('div');
+    overlay.className='preview-overlay';
+
+    overlay.innerHTML=`
+      <div class="preview-wrap">
+        <img src="${imageUrl}" style="width:100%;max-width:480px;border-radius:18px;display:block"/>
+      </div>
+
+      <div class="preview-actions">
+        <button class="preview-btn save" id="saveBtn">
+          📥 Lưu / Chia sẻ ảnh
+        </button>
+
+        <button class="preview-btn close" id="closeBtn">
+          ✕ Đóng
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('closeBtn').onclick=()=>{
+      overlay.remove();
+    };
+
+    document.getElementById('saveBtn').onclick=async()=>{
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
 
       const file = new File(
         [blob],
@@ -592,7 +673,7 @@ async function exportReportImage(rec){
         {type:'image/png'}
       );
 
-      // Mobile share API
+      // share API
       if(navigator.canShare && navigator.canShare({files:[file]})){
         try{
           await navigator.share({
@@ -603,26 +684,19 @@ async function exportReportImage(rec){
         }catch(e){}
       }
 
-      // Download fallback
-      const url = URL.createObjectURL(blob);
-
+      // fallback open image
       const a=document.createElement('a');
-      a.href=url;
+      a.href=imageUrl;
       a.download=`Bao-cao-${rec.empId}-${rec.date}.png`;
-      document.body.appendChild(a);
+      a.target='_blank';
       a.click();
-      a.remove();
 
-      // Open image fallback
-      setTimeout(()=>{
-        window.open(url,'_blank');
-      },500);
-
-    },'image/png',1);
+      window.open(imageUrl,'_blank');
+    };
 
   }catch(err){
     console.error(err);
-    alert('❌ Xuất ảnh thất bại. Hãy dùng Chrome hoặc Safari.');
+    alert('❌ Xuất ảnh thất bại. Hãy dùng Chrome hoặc Safari mới nhất.');
   }
 }
 
