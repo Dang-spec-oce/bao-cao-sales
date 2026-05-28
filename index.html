@@ -841,12 +841,16 @@ async function exportReportImage(rec){
     ].join(';');
 
     const clone = target.cloneNode(true);
-    clone.style.cssText = 'position:static;transform:none;margin:0;padding:12px';
+    clone.style.cssText = 'position:static;transform:none;margin:0;padding:12px 12px 4px';
+
+    // Ẩn nút "Xuất ảnh báo cáo" trong ảnh
+    const cloneBtn = clone.querySelector('.btn-sub');
+    if(cloneBtn) cloneBtn.style.display = 'none';
 
     // Thêm watermark vào clone
     const wm = document.createElement('div');
     wm.innerHTML = '🕒 ' + new Date().toLocaleString('vi-VN');
-    wm.style.cssText = 'text-align:right;font-size:11px;color:#666;padding:10px 6px 4px 0;font-weight:700';
+    wm.style.cssText = 'text-align:right;font-size:11px;color:#888;padding:8px 6px 10px 0;font-weight:600';
     clone.appendChild(wm);
 
     wrapper.appendChild(clone);
