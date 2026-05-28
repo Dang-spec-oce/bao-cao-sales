@@ -4,9 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>Báo cáo bán hàng hằng ngày</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<!-- Google Fonts removed: cross-origin gây tainted canvas trên iOS Safari -->
 <style>
 :root{
   --bg:#ffffff;--bg2:#f5f5f4;--bg3:#eeece8;
@@ -18,7 +16,7 @@
   --red-bg:#FCEBEB;--red-txt:#A32D2D;--red-brd:#F09595;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;color:var(--txt);background:#f0ede9;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--txt);background:#f0ede9;min-height:100vh}
 .page{max-width:480px;margin:0 auto;padding:12px 12px 40px}
 .hdr{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:14px 14px 12px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--brd)}
 .hdr-ico{width:38px;height:38px;border-radius:var(--radius-sm);background:var(--bg2);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -47,7 +45,7 @@ select{font-size:13px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;
 .so-grp:last-child{margin-bottom:0}
 .so-grp-lbl{font-size:13px;color:#111;margin-bottom:7px;font-weight:800}
 .so-row{display:grid;grid-template-columns:1fr 1fr 1fr 68px;gap:6px;align-items:end}
-.so-row-2{display:grid;grid-template-columns:1fr 1fr 1fr 68px;gap:6px;align-items:end}
+.so-row-2{display:grid;grid-template-columns:1fr 1fr 68px;gap:6px;align-items:end}
 .mini-lbl{font-size:10px;color:var(--txt3);text-align:center;margin-bottom:3px;font-weight:500}
 .pct-box{display:flex;align-items:center;justify-content:center;height:39px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;background:var(--bg2);border:1px solid var(--brd);color:var(--txt2)}
 .pct-box.g{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-brd)}
@@ -99,7 +97,7 @@ select{font-size:13px;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;
 .sum-qty span{font-size:12px;font-weight:400;color:var(--txt2)}
 .clr-btn{font-size:12px;color:var(--txt2);background:none;border:none;cursor:pointer;padding:2px 4px;display:flex;align-items:center;gap:3px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
@@ -823,11 +821,14 @@ function sw(tab){
 
 
 
+
 async function exportReportImage(rec){
   try{
+
+    window.scrollTo(0,0);
+
     const target = document.querySelector('#capture-area');
 
-    // Clone toàn bộ #capture-area vào một container ẩn cố định kích thước
     const wrapper = document.createElement('div');
     wrapper.style.cssText = [
       'position:fixed',
@@ -838,49 +839,51 @@ async function exportReportImage(rec){
       'z-index:-9999',
       'pointer-events:none',
       'overflow:visible',
-      'opacity:0',
+      'opacity:0'
     ].join(';');
 
     const clone = target.cloneNode(true);
-    clone.style.cssText = 'position:static;transform:none;margin:0;padding:12px 12px 4px';
+    clone.style.cssText='position:static;transform:none;margin:0;padding:12px 12px 4px';
 
-    // Copy giá trị input/select/textarea từ bản gốc sang clone
+    // đồng bộ dữ liệu input
     const origInputs = target.querySelectorAll('input, select, textarea');
     const cloneInputs = clone.querySelectorAll('input, select, textarea');
-    origInputs.forEach((el, i) => {
+
+    origInputs.forEach((el,i)=>{
       const cl = cloneInputs[i];
       if(!cl) return;
-      if(el.tagName === 'SELECT') cl.value = el.value;
-      else if(el.type === 'checkbox' || el.type === 'radio') cl.checked = el.checked;
-      else cl.value = el.value;
+
+      if(el.tagName === 'SELECT'){
+        cl.value = el.value;
+      }else{
+        cl.value = el.value;
+      }
     });
 
-    // Copy trạng thái hiển thị của các phần tử dynamic (emp-badge, pct-box, mc-v...)
-    const origElems = target.querySelectorAll('[style]');
-    const cloneElems = clone.querySelectorAll('[style]');
-    origElems.forEach((el, i) => {
-      const cl = cloneElems[i];
-      if(cl) cl.style.cssText = el.style.cssText;
+    // đồng bộ text dynamic
+    const dynamicIds = [
+      'emp-code','emp-store',
+      'pct-tm','pct-tw','pct-v60','pct-y31','pct-v70','pct-v70fe',
+      'm-tm','m-tw','m-v60','m-y31','m-v70','m-v70fe','m-total',
+      'pb-tm','pb-tw','pb-v60','pb-y31','pb-v70','pb-v70fe'
+    ];
+
+    dynamicIds.forEach(id=>{
+      const o = target.querySelector('#'+id);
+      const c = clone.querySelector('#'+id);
+
+      if(o && c){
+        c.textContent = o.textContent;
+        c.className = o.className;
+        c.style.cssText = o.style.cssText;
+      }
     });
 
-    // Copy nội dung text của các phần tử hiển thị kết quả tính toán
-    const dynamicIds = ['emp-code','emp-store','pct-tm','pct-tw','pct-v60','pct-y31','pct-v70','pct-v70fe',
-                        'm-tm','m-tw','m-v60','m-y31','m-v70','m-v70fe','m-total',
-                        'pb-tm','pb-tw','pb-v60','pb-y31','pb-v70','pb-v70fe'];
-    dynamicIds.forEach(id => {
-      const orig = target.querySelector('#'+id);
-      const cl = clone.querySelector('#'+id);
-      if(!orig || !cl) return;
-      cl.textContent = orig.textContent;
-      cl.className = orig.className;
-      cl.style.cssText = orig.style.cssText;
-    });
+    // ẩn nút export
+    const btn = clone.querySelector('.btn-sub');
+    if(btn) btn.style.display='none';
 
-    // Ẩn nút "Xuất ảnh báo cáo" trong ảnh
-    const cloneBtn = clone.querySelector('.btn-sub');
-    if(cloneBtn) cloneBtn.style.display = 'none';
-
-    // Thêm watermark vào clone
+    // watermark
     const wm = document.createElement('div');
     wm.innerHTML = '🕒 ' + new Date().toLocaleString('vi-VN');
     wm.style.cssText = 'text-align:right;font-size:11px;color:#888;padding:8px 6px 10px 0;font-weight:600';
@@ -889,49 +892,99 @@ async function exportReportImage(rec){
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
-    // Đợi render xong
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise(r=>setTimeout(r,500));
 
-    const canvas = await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#f0ede9',
-      scrollX: 0,
-      scrollY: 0,
-      x: 0,
-      y: 0,
-      width: clone.scrollWidth,
-      height: clone.scrollHeight,
-      windowWidth: clone.scrollWidth,
-      windowHeight: clone.scrollHeight,
+    const canvas = await html2canvas(clone,{
+      scale:2,
+      useCORS:false,
+      allowTaint:false,
+      foreignObjectRendering:false,
+      backgroundColor:'#f0ede9',
+      logging:false,
+      scrollX:0,
+      scrollY:0,
+      windowWidth:clone.scrollWidth,
+      windowHeight:clone.scrollHeight
     });
 
     document.body.removeChild(wrapper);
 
-    const image = canvas.toDataURL('image/png');
-
     const safeName = (rec.empName || 'Nhan-vien')
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-zA-Z0-9]/g, '-');
-    const safeDate = (rec.date || '').replace(/-/g, '');
+      .replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-zA-Z0-9]/g,'-');
 
-    const link = document.createElement('a');
-    link.href = image;
-    link.download = `${safeName}-${safeDate}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const safeDate = (rec.date || '').replace(/-/g,'');
 
-    // Fallback mobile
-    setTimeout(() => { window.open(image, '_blank'); }, 600);
+    // iOS Safari: dùng dataURL thay vì toBlob để tránh SecurityError
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if(isIOS){
+      // iOS: hiện ảnh để user nhấn giữ lưu
+      let dataUrl;
+      try{
+        dataUrl = canvas.toDataURL('image/png');
+      }catch(e){
+        alert('Lỗi tạo ảnh: ' + e.message);
+        return;
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'preview-overlay';
+
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-wrap';
+
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.style.cssText = 'max-width:100%;border-radius:18px;background:#fff;display:block';
+
+      wrap.appendChild(img);
+
+      const actions = document.createElement('div');
+      actions.className = 'preview-actions';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'preview-btn save';
+      saveBtn.innerHTML = '📸 Nhấn giữ vào ảnh → Lưu ảnh';
+
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'preview-btn close';
+      closeBtn.innerHTML = 'Đóng';
+
+      closeBtn.onclick = ()=>{ overlay.remove(); };
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(closeBtn);
+      overlay.appendChild(wrap);
+      overlay.appendChild(actions);
+      document.body.appendChild(overlay);
+
+    }else if(canvas.toBlob){
+      // Android / Desktop: dùng toBlob + download link
+      canvas.toBlob((blob)=>{
+        if(!blob){ alert('Không thể tạo ảnh'); return; }
+        const fileUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `${safeName}-${safeDate}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(()=>URL.revokeObjectURL(fileUrl),3000);
+      },'image/png');
+    }else{
+      // Fallback: mở dataURL
+      const image = canvas.toDataURL('image/png');
+      window.open(image,'_blank');
+    }
 
   }catch(err){
     console.error(err);
     alert('Lỗi xuất ảnh: ' + err.message);
   }
 }
+
 
 function card(title,value){
 
@@ -946,12 +999,6 @@ function card(title,value){
 addRow();
 </script>
 
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js');
-  });
-}
-</script>
+<!-- Service Worker removed: không có file service-worker.js -->
 </body>
 </html>
