@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Báo cáo bán hàng</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#111111">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f3f3;
+  color:#111;
+}
+.wrap{
+  max-width:540px;
+  margin:auto;
+  padding:14px;
+}
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.title{
+  font-size:24px;
+  font-weight:900;
+  text-align:center;
+  margin-bottom:16px;
+}
+label{
+  display:block;
+  font-size:13px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+input,textarea,select{
+  width:100%;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:15px;
+  margin-bottom:12px;
+}
+textarea{min-height:90px}
+
+.grid{
+  display:grid;
+  grid-template-columns:110px 1fr;
+  gap:10px;
+}
+
+.btn{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:16px;
+  font-size:16px;
+  font-weight:900;
+  color:#fff;
+  background:#111;
+}
+.btn:active{
+  transform:scale(.98);
+}
+
+.note{
+  font-size:12px;
+  color:#666;
+  text-align:center;
+  margin-top:12px;
+}
+
+#capture{
+  position:fixed;
+  left:-99999px;
+  top:0;
+  width:420px;
+  background:#fff;
+}
+
+.success{
+  background:#d10000;
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  margin-top:12px;
+  display:none;
+  font-weight:700;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="card">
+<div class="title">BÁO CÁO BÁN HÀNG</div>
+
+<div class="grid">
+<div>
+<label>Ngày</label>
+<input type="date" id="date">
+</div>
+
+<div>
+<label>Nhân viên</label>
+<input type="text" id="name" placeholder="Nguyễn Văn A">
+</div>
+</div>
+
+<label>SO tháng</label>
+<input type="number" id="month" placeholder="14">
+
+<label>Target tháng</label>
+<input type="number" id="target" placeholder="25">
+
+<label>Model bán được</label>
+<textarea id="models" placeholder="V70 x2&#10;Y31d x1"></textarea>
+
+<label>Ghi chú</label>
+<textarea id="note"></textarea>
+
+<button class="btn" onclick="exportImage()">
+💾 LƯU BÁO CÁO & XUẤT ẢNH
+</button>
+
+<div class="success" id="successBox">
+✅ Ảnh đã được lưu / mở thành công
+</div>
+
+<div class="note">
+Khuyên dùng Chrome hoặc Safari
+</div>
+
+</div>
+
+</div>
+
+<div id="capture"></div>
+
+<script>
+
+document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+async function exportImage(){
+
+  const date = document.getElementById('date').value;
+  const name = document.getElementById('name').value;
+  const month = document.getElementById('month').value;
+  const target = document.getElementById('target').value;
+  const models = document.getElementById('models').value;
+  const note = document.getElementById('note').value;
+
+  if(!name){
+    alert('Vui lòng nhập tên nhân viên');
+    return;
+  }
+
+  const percent = target > 0
+    ? Math.round((month / target) * 100)
+    : 0;
+
+  const now = new Date().toLocaleString('vi-VN');
+
+  const box = document.getElementById('capture');
+
+  box.innerHTML = `
+    <div style="padding:20px;border-radius:20px;border:3px solid #111;background:#fff">
+
+      <div style="font-size:28px;font-weight:900;text-align:center">
+        BÁO CÁO BÁN HÀNG
+      </div>
+
+      <div style="text-align:center;color:#666;margin-top:6px;font-size:16px">
+        ${date}
+      </div>
+
+      <div style="margin-top:20px;font-size:22px;font-weight:900;line-height:1.4">
+        ${name}
+      </div>
+
+      <div style="margin-top:16px;padding:14px;background:#f4f4f4;border-radius:14px">
+        <div style="font-size:14px;font-weight:900;margin-bottom:8px">
+          TLHT THÁNG
+        </div>
+
+        <div style="font-size:18px;font-weight:800">
+          ${month}/${target} (${percent}%)
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:14px;background:#f4f4f4;border-radius:14px">
+        <div style="font-size:14px;font-weight:900;margin-bottom:8px">
+          MODEL BÁN ĐƯỢC
+        </div>
+
+        <div style="font-size:16px;line-height:1.8;white-space:pre-line">
+          ${models || 'Không có dữ liệu'}
+        </div>
+      </div>
+
+      ${note ? `
+      <div style="margin-top:16px;padding:14px;background:#f4f4f4;border-radius:14px">
+        <div style="font-size:14px;font-weight:900;margin-bottom:8px">
+          GHI CHÚ
+        </div>
+
+        <div style="font-size:15px;line-height:1.6">
+          ${note}
+        </div>
+      </div>
+      ` : ''}
+
+      <div style="margin-top:22px;padding-top:14px;border-top:2px dashed #d10000;color:#d10000;font-size:14px;font-weight:900;text-align:center">
+        THỜI GIAN XUẤT: ${now}
+      </div>
+
+    </div>
+  `;
+
+  try{
+
+    const canvas = await html2canvas(box,{
+      scale:3,
+      useCORS:true,
+      backgroundColor:'#ffffff'
+    });
+
+    const blob = await new Promise(resolve => {
+      canvas.toBlob(resolve,'image/png',1);
+    });
+
+    const file = new File(
+      [blob],
+      `Bao-cao-${name}.png`,
+      {type:'image/png'}
+    );
+
+    // Mobile share API
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+
+      await navigator.share({
+        files:[file],
+        title:'Báo cáo bán hàng'
+      });
+
+      document.getElementById('successBox').style.display='block';
+      return;
+    }
+
+    // Fallback download
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Bao-cao-${name}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+    document.getElementById('successBox').style.display='block';
+
+  }catch(err){
+    console.error(err);
+    alert('Xuất ảnh thất bại. Hãy dùng Chrome hoặc Safari mới nhất.');
+  }
+}
+
+// service worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
+
+</body>
+</html>
