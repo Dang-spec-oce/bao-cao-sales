@@ -1,4 +1,4 @@
-# VN5 REPORT — PWA cho PG nhập báo cáo Zalo
+# vivo report daily — PWA cho PG nhập báo cáo Zalo (Báo cáo ngày PG Huế)
 
 Web App tĩnh (không server, không Google Sheet), chạy offline, lưu dữ liệu bằng
 IndexedDB ngay trên điện thoại. Đúng theo SRS `VN5 REPORT v1.0 STABLE`.

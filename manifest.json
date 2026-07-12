@@ -1,6 +1,6 @@
 {
-  "name": "VN5 Report",
-  "short_name": "VN5 Report",
+  "name": "vivo report daily",
+  "short_name": "vivo report daily",
   "description": "Ứng dụng nhập báo cáo doanh số PG Vivo VN5 - nhanh, offline, không cần server.",
   "start_url": "./index.html",
   "scope": "./",

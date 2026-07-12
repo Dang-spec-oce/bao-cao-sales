@@ -165,6 +165,7 @@ const state = {
   recentModels: [],
   activeTab: "today",
   searchQuery: "",
+  stockOpen: false,
 };
 
 async function boot() {
@@ -260,6 +261,16 @@ async function bumpCompetitor(name, delta) {
   renderUpdateTab();
 }
 
+async function setStock(name, value) {
+  if (!state.report) return;
+  if (!state.report.stock) state.report.stock = {};
+  const n = value === "" ? "" : Math.max(0, Number(value) || 0);
+  if (n === "") delete state.report.stock[name];
+  else state.report.stock[name] = n;
+  await saveReport();
+  renderUpdateTab();
+}
+
 async function setWeekDayTarget(field, value) {
   if (!state.report) return;
   state.report[field] = Number(value) || 0;
@@ -322,6 +333,12 @@ function buildExportText() {
       lines.push(`- ${name}: ${m.today}/${m.month}`);
     }
   });
+  const stockEntries = Object.entries(r.stock || {}).filter(([, v]) => v !== undefined && v !== null && v !== "");
+  if (stockEntries.length) {
+    lines.push(``);
+    lines.push(`🏬 Tồn kho:`);
+    stockEntries.forEach(([name, qty]) => lines.push(`- ${name}: ${qty}`));
+  }
   lines.push(``);
   lines.push(`🔁 Đối thủ cạnh tranh (Hôm nay/Lũy kế tháng):`);
   COMPETITORS.forEach((name) => {
@@ -364,7 +381,7 @@ function render() {
   root.innerHTML = `
     <div class="topbar">
       <img src="logo.png" class="logo" alt="vivo" />
-      <div class="topbar-title">VN5 REPORT</div>
+      <div class="topbar-title">Báo cáo ngày PG Huế</div>
     </div>
     <div id="tabContent" class="tab-content"></div>
     <div class="bottomnav">
@@ -509,6 +526,8 @@ function renderUpdateTab() {
     <div class="model-list">${state.recentModels.map((m) => modelRow(m, r)).join("")}</div>
   ` : "";
 
+  const stockCount = Object.values(r.stock || {}).filter((v) => v !== undefined && v !== null && v !== "").length;
+
   el.innerHTML = `
     <div class="card">
       <input id="modelSearch" class="input" placeholder="Tìm model... (vd: 70, 31, 05)" value="${state.searchQuery}" />
@@ -516,6 +535,12 @@ function renderUpdateTab() {
     ${recentHtml}
     <div class="section-label">Tất cả model</div>
     <div class="model-list">${filtered.map((m) => modelRow(m, r)).join("")}</div>
+
+    <div class="section-label">Tồn kho</div>
+    <details class="stock-details" id="stockDetails">
+      <summary>Xem / chỉnh tồn kho ${stockCount ? `<span class="stock-count">${stockCount} model đã nhập</span>` : ""}</summary>
+      <div class="stock-list">${MODELS.map((m) => stockRow(m, r)).join("")}</div>
+    </details>
 
     <div class="section-label">Đối thủ cạnh tranh</div>
     <div class="model-list">${COMPETITORS.map((c) => competitorRow(c, r)).join("")}</div>
@@ -541,6 +566,15 @@ function renderUpdateTab() {
       else bumpCompetitor(name, delta);
     });
   });
+
+  const stockDetails = document.getElementById("stockDetails");
+  if (stockDetails && state.stockOpen) stockDetails.open = true;
+  if (stockDetails) {
+    stockDetails.addEventListener("toggle", () => { state.stockOpen = stockDetails.open; });
+  }
+  el.querySelectorAll("[data-stock]").forEach((input) => {
+    input.addEventListener("change", (e) => setStock(input.dataset.stock, e.target.value));
+  });
 }
 
 function modelRow(name, r) {
@@ -554,6 +588,15 @@ function modelRow(name, r) {
         <button class="step-btn" data-stepper="model" data-name="${name}" data-delta="1">+</button>
       </div>
       <div class="stepper-month">Tháng: ${m.month}</div>
+    </div>
+  `;
+}
+function stockRow(name, r) {
+  const val = r.stock && r.stock[name] !== undefined ? r.stock[name] : "";
+  return `
+    <div class="stock-row">
+      <div class="stock-name">${name}</div>
+      <input type="number" min="0" inputmode="numeric" class="stock-input" data-stock="${name}" value="${val}" placeholder="0" />
     </div>
   `;
 }
