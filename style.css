@@ -192,35 +192,48 @@ html, body {
   margin: 16px 4px 8px;
   letter-spacing: 0.4px;
 }
-.model-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
-.stepper-row {
+/* List-view rows for Tất cả model / Đối thủ cạnh tranh — matches Tồn kho input style */
+.flat-list {
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 10px 12px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
+  padding: 4px 12px;
+  margin-bottom: 4px;
+}
+.flat-row {
+  display: flex;
   align-items: center;
-  row-gap: 4px;
+  justify-content: space-between;
+  padding: 8px 2px;
+  border-bottom: 1px dashed var(--border);
+  gap: 10px;
 }
-.stepper-name { font-size: 13.5px; font-weight: 600; grid-column: 1; grid-row: 1; }
-.stepper-controls { grid-column: 2; grid-row: 1 / span 2; display: flex; align-items: center; gap: 10px; }
-.stepper-month { grid-column: 1; grid-row: 2; font-size: 11.5px; color: var(--muted); }
-.step-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: var(--vivo-blue);
-  color: #fff;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
+.flat-row:last-child { border-bottom: none; }
+.flat-row-name { flex: 1; min-width: 0; }
+.flat-name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.flat-month { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.flat-input {
+  width: 64px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 14px;
+  background: var(--bg);
+  color: var(--text);
+  flex-shrink: 0;
 }
-.step-btn:active { background: var(--vivo-blue-dark); }
-.step-val { min-width: 22px; text-align: center; font-weight: 700; font-size: 15px; }
+
+/* Hide native number spinner (+/-) everywhere — direct typing only */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
 
 .export-pre {
   white-space: pre-wrap;

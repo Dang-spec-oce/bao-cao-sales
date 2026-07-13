@@ -240,10 +240,12 @@ async function saveReport() {
   await idbPut("REPORT", state.report);
 }
 
-async function bumpModel(name, delta) {
+async function setModelToday(name, rawValue) {
   if (!state.report) return;
   const m = state.report.models[name] || (state.report.models[name] = { today: 0, month: 0 });
-  m.today = Math.max(0, m.today + delta);
+  const n = Math.max(0, Math.floor(Number(rawValue)) || 0);
+  const delta = n - m.today;
+  m.today = n;
   m.month = Math.max(0, m.month + delta);
   await saveReport();
   // update recent
@@ -252,10 +254,12 @@ async function bumpModel(name, delta) {
   renderUpdateTab();
 }
 
-async function bumpCompetitor(name, delta) {
+async function setCompetitorToday(name, rawValue) {
   if (!state.report) return;
   const c = state.report.competitors[name];
-  c.today = Math.max(0, c.today + delta);
+  const n = Math.max(0, Math.floor(Number(rawValue)) || 0);
+  const delta = n - c.today;
+  c.today = n;
   c.month = Math.max(0, c.month + delta);
   await saveReport();
   renderUpdateTab();
@@ -523,7 +527,7 @@ function renderUpdateTab() {
 
   const recentHtml = state.recentModels.length ? `
     <div class="section-label">Model gần đây</div>
-    <div class="model-list">${state.recentModels.map((m) => modelRow(m, r)).join("")}</div>
+    <div class="flat-list">${state.recentModels.map((m) => modelRow(m, r)).join("")}</div>
   ` : "";
 
   const stockCount = Object.values(r.stock || {}).filter((v) => v !== undefined && v !== null && v !== "").length;
@@ -534,7 +538,7 @@ function renderUpdateTab() {
     </div>
     ${recentHtml}
     <div class="section-label">Tất cả model</div>
-    <div class="model-list">${filtered.map((m) => modelRow(m, r)).join("")}</div>
+    <div class="flat-list">${filtered.map((m) => modelRow(m, r)).join("")}</div>
 
     <div class="section-label">Tồn kho</div>
     <details class="stock-details" id="stockDetails">
@@ -543,7 +547,7 @@ function renderUpdateTab() {
     </details>
 
     <div class="section-label">Đối thủ cạnh tranh</div>
-    <div class="model-list">${COMPETITORS.map((c) => competitorRow(c, r)).join("")}</div>
+    <div class="flat-list">${COMPETITORS.map((c) => competitorRow(c, r)).join("")}</div>
   `;
 
   const searchEl = document.getElementById("modelSearch");
@@ -558,13 +562,11 @@ function renderUpdateTab() {
     searchEl.selectionStart = searchEl.selectionEnd = searchEl.value.length;
   }
 
-  el.querySelectorAll("[data-stepper]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const name = btn.dataset.name;
-      const delta = Number(btn.dataset.delta);
-      if (btn.dataset.stepper === "model") bumpModel(name, delta);
-      else bumpCompetitor(name, delta);
-    });
+  el.querySelectorAll("[data-model]").forEach((input) => {
+    input.addEventListener("change", (e) => setModelToday(input.dataset.model, e.target.value));
+  });
+  el.querySelectorAll("[data-comp]").forEach((input) => {
+    input.addEventListener("change", (e) => setCompetitorToday(input.dataset.comp, e.target.value));
   });
 
   const stockDetails = document.getElementById("stockDetails");
@@ -580,14 +582,12 @@ function renderUpdateTab() {
 function modelRow(name, r) {
   const m = r.models[name] || { today: 0, month: 0 };
   return `
-    <div class="stepper-row">
-      <div class="stepper-name">${name}</div>
-      <div class="stepper-controls">
-        <button class="step-btn" data-stepper="model" data-name="${name}" data-delta="-1">−</button>
-        <span class="step-val">${m.today}</span>
-        <button class="step-btn" data-stepper="model" data-name="${name}" data-delta="1">+</button>
+    <div class="flat-row">
+      <div class="flat-row-name">
+        <div class="flat-name">${name}</div>
+        <div class="flat-month">Tháng: ${m.month}</div>
       </div>
-      <div class="stepper-month">Tháng: ${m.month}</div>
+      <input type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*" class="flat-input" data-model="${name}" value="${m.today}" placeholder="0" />
     </div>
   `;
 }
@@ -596,21 +596,19 @@ function stockRow(name, r) {
   return `
     <div class="stock-row">
       <div class="stock-name">${name}</div>
-      <input type="number" min="0" inputmode="numeric" class="stock-input" data-stock="${name}" value="${val}" placeholder="0" />
+      <input type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*" class="stock-input" data-stock="${name}" value="${val}" placeholder="0" />
     </div>
   `;
 }
 function competitorRow(name, r) {
   const c = r.competitors[name];
   return `
-    <div class="stepper-row">
-      <div class="stepper-name">${name}</div>
-      <div class="stepper-controls">
-        <button class="step-btn" data-stepper="comp" data-name="${name}" data-delta="-1">−</button>
-        <span class="step-val">${c.today}</span>
-        <button class="step-btn" data-stepper="comp" data-name="${name}" data-delta="1">+</button>
+    <div class="flat-row">
+      <div class="flat-row-name">
+        <div class="flat-name">${name}</div>
+        <div class="flat-month">Tháng: ${c.month}</div>
       </div>
-      <div class="stepper-month">Tháng: ${c.month}</div>
+      <input type="number" min="0" step="1" inputmode="numeric" pattern="[0-9]*" class="flat-input" data-comp="${name}" value="${c.today}" placeholder="0" />
     </div>
   `;
 }
