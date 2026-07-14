@@ -33,7 +33,7 @@ const EMPLOYEES = [
     "sales": "Nguyễn Hải Đăng",
     "area": "VN5.3.4",
     "shopName": "KA-934-TGD_HUE_PXU - 254 Nguyễn Trãi",
-    "shopCode": "964",
+    "shopCode": "934",
     "shopType": "B"
   },
   {
@@ -123,7 +123,7 @@ const EMPLOYEES = [
     "sales": "Nguyễn Hải Đăng",
     "area": "VN5.3.4",
     "shopName": "KA-722-ĐML_HUE_PXU - 197 Trần Hưng Đạo",
-    "shopCode": "197",
+    "shopCode": "722",
     "shopType": "B"
   },
   {
